@@ -1,15 +1,21 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// storage/UserStorage.js
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const STORAGE_KEY = '@bookfy_users';
+const STORAGE_KEY = "@bookfy_users";
 
 async function getAll() {
   try {
     const json = await AsyncStorage.getItem(STORAGE_KEY);
     return json != null ? JSON.parse(json) : [];
   } catch (e) {
-    console.error('Erro ao carregar usuários', e);
+    console.error("Erro ao carregar usuários", e);
     return [];
   }
+}
+
+async function getById(id) {
+  const users = await getAll();
+  return users.find((user) => user.id === id);
 }
 
 async function create(user) {
@@ -36,6 +42,7 @@ async function remove(id) {
 
 export default {
   getAll,
+  getById,
   create,
   update,
   remove,

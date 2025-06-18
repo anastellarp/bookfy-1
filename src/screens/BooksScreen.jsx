@@ -1,37 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList } from 'react-native';
-import { FAB, Text } from 'react-native-paper';
-import BookCard from '../components/BookCard';
-import BookStorage from '../storage/BookStorage';
+import React, { useEffect, useState, useCallback } from "react";
+import { FlatList } from "react-native";
+import { FAB, Text } from "react-native-paper";
+import BookCard from "../components/BookCard";
+import BookStorage from "../storage/BookStorage";
 
 export default function BooksScreen({ navigation }) {
   const [books, setBooks] = useState([]);
 
+  const loadBooks = useCallback(async () => {
+    const allBooks = await BookStorage.getAll();
+    setBooks(allBooks);
+  }, []);
+
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribe = navigation.addListener("focus", () => {
       loadBooks();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, loadBooks]);
 
-  async function loadBooks() {
-    const allBooks = await BookStorage.getAll();
-    setBooks(allBooks);
-  }
+  const handleEdit = (book) => {
+    navigation.navigate("BookForm", { book });
+  };
+
+  const handleDelete = async (id) => {
+    await BookStorage.remove(id);
+    loadBooks();
+  };
 
   return (
     <>
-      {books.length === 0 && <Text style={{ margin: 20 }}>Nenhum livro cadastrado.</Text>}
+      {books.length === 0 && (
+        <Text style={{ margin: 20 }}>Nenhum livro cadastrado.</Text>
+      )}
       <FlatList
         data={books}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <BookCard book={item} />}
+        renderItem={({ item }) => (
+          <BookCard book={item} onEdit={handleEdit} onDelete={handleDelete} />
+        )}
       />
       <FAB
         icon="plus"
         label="Adicionar Livro"
-        style={{ position: 'absolute', right: 16, bottom: 16 }}
-        onPress={() => navigation.navigate('BookForm')}
+        style={{ position: "absolute", right: 16, bottom: 16 }}
+        onPress={() => navigation.navigate("BookForm")}
       />
     </>
   );
